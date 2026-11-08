@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121a2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Conso 205">
+<meta name="robots" content="noindex, nofollow">
+<title>Conso 205</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f08a24'/%3E%3Cpath d='M22 14h16a3 3 0 0 1 3 3v33H19V17a3 3 0 0 1 3-3zm2 6v9h12v-9zM44 22l5 5v17a3 3 0 0 1-6 0v-8h-2' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f08a24'/%3E%3Cpath d='M22 14h16a3 3 0 0 1 3 3v33H19V17a3 3 0 0 1 3-3zm2 6v9h12v-9zM44 22l5 5v17a3 3 0 0 1-6 0v-8h-2' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root { --bg:#f4f6fa; --surface:#fff; --surface-2:#f8f9fc; --border:#e4e8ef; --text:#18202e; --text-2:#4a5568; --muted:#8590a2;
+  --accent:#f08a24; --accent-2:#d9731a; --blue:#2f6fde; --blue-soft:#e8f0fd; --good:#16a06a; --good-soft:#e3f6ed; --bad:#dc4a3d; --bad-soft:#fde9e7;
+  --warn:#c98a06; --warn-soft:#fdf4dd; --r:16px; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0e1422; --surface:#161e2f; --surface-2:#1b2437; --border:#263149; --text:#e8ecf4; --text-2:#b4bdcf; --muted:#7d889e;
+  --blue-soft:#16264a; --good-soft:#0f2e22; --bad-soft:#3a1714; --warn-soft:#33290d; color-scheme: dark; } }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
+.wrap { max-width: 560px; margin: 0 auto; padding: max(14px, env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
+header { display: flex; align-items: center; gap: 12px; margin: 4px 2px 14px; }
+.logo { width: 38px; height: 38px; border-radius: 11px; background: var(--accent); display: grid; place-items: center; flex: none; }
+.logo svg { width: 24px; height: 24px; }
+h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+.sub { color: var(--muted); font-size: 13px; }
+.menu-btn { margin-left: auto; background: none; border: 0; color: var(--text-2); font-size: 22px; padding: 6px 10px; border-radius: 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+.seg { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; margin-bottom: 14px; }
+.seg button { flex: 1; border: 0; background: none; color: var(--text-2); padding: 10px 6px; border-radius: 9px; font: 600 14px inherit; font-family: inherit; }
+.seg button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.last { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.last div span { display: block; font-size: 11.5px; color: var(--muted); }
+.last div b { font-size: 16px; font-variant-numeric: tabular-nums; }
+label { display: block; font-size: 13px; font-weight: 600; color: var(--text-2); margin: 0 0 6px; }
+.f { margin-bottom: 14px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.inp-wrap { position: relative; }
+.inp-wrap span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+input { width: 100%; font: inherit; font-size: 18px; font-variant-numeric: tabular-nums; padding: 13px 12px; border: 1.5px solid var(--border); border-radius: 12px;
+  background: var(--surface); color: var(--text); outline: none; -webkit-appearance: none; appearance: none; min-height: 52px; }
+input[type=date] { font-size: 16px; }
+.trio input { font-size: 16.5px; padding-right: 30px; }
+input:focus { border-color: var(--blue); }
+input.auto { background: var(--blue-soft); border-style: dashed; color: var(--blue); }
+input.err { border-color: var(--bad); }
+.hint { font-size: 12px; color: var(--muted); margin: -6px 0 12px; }
+.lab-auto::after { content: " · calculé"; color: var(--blue); }
+.toggle { display: flex; align-items: center; gap: 12px; padding: 4px 0 14px; font-size: 15px; }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; min-height: 0; }
+.sw { width: 50px; height: 30px; border-radius: 99px; background: var(--border); position: relative; flex: none; transition: .15s; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: .15s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.toggle input:checked + .sw { background: var(--good); }
+.toggle input:checked + .sw::after { left: 23px; }
+.toggle small { display: block; color: var(--muted); font-size: 12px; }
+details { margin-bottom: 14px; }
+summary { color: var(--blue); font-weight: 600; font-size: 14px; padding: 4px 0 10px; cursor: pointer; }
+.prev { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--surface-2); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.prev span { display: block; font-size: 11.5px; color: var(--muted); }
+.prev b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.msg { border-radius: 12px; padding: 11px 13px; font-size: 14px; margin-bottom: 12px; line-height: 1.45; }
+.msg.warn { background: var(--warn-soft); color: var(--warn); }
+.msg.err { background: var(--bad-soft); color: var(--bad); }
+.msg.ok { background: var(--good-soft); color: var(--good); font-weight: 600; }
+.btn { width: 100%; border: 0; border-radius: 14px; padding: 16px; font: 700 17px inherit; font-family: inherit; background: var(--accent); color: #fff; }
+.btn:active { background: var(--accent-2); }
+.btn[disabled] { opacity: .55; }
+.btn.ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); font-weight: 600; font-size: 15px; padding: 13px; }
+.list { margin: 0; padding: 0; list-style: none; }
+.list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 0; border-bottom: 1px dashed var(--border); font-variant-numeric: tabular-nums; }
+.list li:last-child { border: 0; }
+.list .k { font-weight: 700; }
+.list .d { color: var(--muted); font-size: 13px; }
+.list .c { text-align: right; font-weight: 600; }
+.list .p { text-align: right; color: var(--muted); font-size: 13px; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+.pill.good { background: var(--good-soft); color: var(--good); } .pill.bad { background: var(--bad-soft); color: var(--bad); } .pill.warn { background: var(--warn-soft); color: var(--warn); }
+.foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; }
+.hidden { display: none !important; }
+.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: s .7s linear infinite; vertical-align: -3px; margin-right: 6px; }
+@keyframes s { to { transform: rotate(360deg); } }
+.sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; z-index: 10; }
+.sheet .card { width: 100%; max-width: 560px; margin: 0 auto; border-radius: 18px 18px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+.sheet .btn { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M7 3h7a1 1 0 0 1 1 1v16H6V4a1 1 0 0 1 1-1zm1 3v4h5V6zM15 8l3 3v7a1.5 1.5 0 0 1-3 0v-4h-1"/></svg></div>
+    <div><h1>Conso 205</h1><div class="sub" id="sub">Saisie d'un plein</div></div>
+    <button class="menu-btn hidden" id="menuBtn" aria-label="Menu">⋯</button>
+  </header>
+
+  <!-- Configuration (une seule fois) -->
+  <section id="setup" class="hidden">
+    <div class="card">
+      <h2>Connexion à ton dépôt privé</h2>
+      <p class="sub" style="margin:0 0 14px">Le plus simple : dans Conso 205 sur le PC, Paramètres › Synchronisation › « QR code pour le téléphone », puis scanne-le.
+        Sinon, renseigne les champs ci-dessous. Le jeton reste uniquement sur ce téléphone.</p>
+      <div class="f"><label>Propriétaire (pseudo GitHub)</label><input id="sOwner" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <div class="f"><label>Dépôt privé</label><input id="sRepo" value="conso-205-donnees" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <div class="f"><label>Jeton d'accès</label><input id="sTok" type="password" autocapitalize="off" autocomplete="off" placeholder="github_pat_…"></div>
+      <div id="sMsg"></div>
+      <button class="btn" id="sGo">Se connecter</button>
+    </div>
+  </section>
+
+  <!-- Saisie -->
+  <section id="main" class="hidden">
+    <div class="seg" id="vehs"></div>
+    <div class="card" id="lastCard"></div>
+    <div class="card">
+      <div class="row">
+        <div class="f"><label>Kilométrage</label><div class="inp-wrap"><input id="km" inputmode="numeric" autocomplete="off"><span>km</span></div></div>
+        <div class="f"><label>Date</label><input id="date" type="date"></div>
+      </div>
+      <div class="trio">
+        <div class="f"><label id="lPrix">Montant</label><div class="inp-wrap"><input id="prix" inputmode="decimal" autocomplete="off"><span>€</span></div></div>
+        <div class="f"><label id="lL">Litres</label><div class="inp-wrap"><input id="litres" inputmode="decimal" autocomplete="off"><span>L</span></div></div>
+        <div class="f"><label id="lPL">Prix/L</label><div class="inp-wrap"><input id="pl" inputmode="decimal" autocomplete="off"><span>€</span></div></div>
+      </div>
+      <div class="hint">Saisis deux des trois valeurs du ticket : la troisième se calcule.</div>
+      <label class="toggle"><input type="checkbox" id="complet" checked><span class="sw"></span><span>Plein complet (à ras)<small>Décoche pour un appoint</small></span></label>
+      <details><summary>Station, note…</summary>
+        <div class="f"><label>Station</label><input id="station" style="font-size:16px"></div>
+        <div class="f"><label>Note</label><input id="note" style="font-size:16px"></div>
+      </details>
+      <div class="prev" id="prev"></div>
+      <div id="msgs"></div>
+      <button class="btn" id="save">Enregistrer le plein</button>
+    </div>
+    <div class="card"><h2>Derniers pleins</h2><ul class="list" id="list"></ul></div>
+    <div class="foot" id="foot"></div>
+  </section>
+
+  <section id="loading" class="card" style="text-align:center"><span class="spin"></span>Chargement…</section>
+</div>
+
+<div class="sheet hidden" id="sheet"><div class="card">
+  <h2 id="shTitle">Options</h2>
+  <div class="sub" id="shInfo" style="margin-bottom:10px"></div>
+  <button class="btn ghost" id="shReload">Actualiser les données</button>
+  <button class="btn ghost" id="shLogout">Déconnecter ce téléphone</button>
+  <button class="btn ghost" id="shClose">Fermer</button>
+</div></div>
+
+<script>
+/* Conso 205 — calculs (identiques aux formules du classeur Excel d'origine)
+ *
+ * Par plein (colonnes D à G du classeur) :
+ *   Prix au litre  = Prix / Quantité
+ *   Km parcourus   = Km - Km du plein précédent
+ *   Conso L/100 km = Quantité / Km parcourus × 100
+ *   Coût €/km      = Prix / Km parcourus
+ * Ajout : un plein « partiel » n'a pas de conso propre ; ses litres sont
+ * reportés sur le plein complet suivant (conso entre deux pleins complets).
+ * Si tous les pleins sont complets, on retrouve exactement le classeur.
+ */
+(function (root) {
+  function compute(pleins, reservoir, kmAn, today) {
+    const rows = [...pleins].sort((a, b) => a.km - b.km);
+    const out = [];
+    let prev = null, anchorKm = null, litresSince = 0;
+    for (const p of rows) {
+      const r = { ...p };
+      r.prix_l = p.litres ? p.prix / p.litres : null;
+      if (!prev) {
+        r.km_parc = null; r.conso = null; r.cout_km = null;
+      } else {
+        const d = p.km - prev.km;
+        r.km_parc = d;
+        r.cout_km = d > 0 ? p.prix / d : null;
+        litresSince += p.litres;
+        r.conso = (p.complet && anchorKm !== null && p.km > anchorKm)
+          ? litresSince / (p.km - anchorKm) * 100 : null;
+      }
+      if (p.complet) { anchorKm = p.km; litresSince = 0; }
+      out.push(r);
+      prev = p;
+    }
+
+    const s = { n: out.length };
+    if (!out.length) return { rows: out, s };
+    const sum = (a) => a.reduce((x, y) => x + y, 0);
+    const nn = (k) => out.map((r) => r[k]).filter((v) => v !== null && v !== undefined);
+    const kms = out.map((r) => r.km);
+    const kmParcs = nn('km_parc'), consos = nn('conso'), prixLs = nn('prix_l');
+    const sumPrix = sum(out.map((r) => r.prix)), sumL = sum(out.map((r) => r.litres));
+
+    s.km_actuel = Math.max(...kms);
+    s.km_periode = Math.max(...kms) - Math.min(...kms);
+    s.km_moy = kmParcs.length ? sum(kmParcs) / kmParcs.length : null;
+    s.km_max = kmParcs.length ? Math.max(...kmParcs) : null;
+    s.litres_conso = sumL - out[0].litres;
+    s.depense_periode = sumPrix - out[0].prix;
+    s.depense_totale = sumPrix;
+    s.litres_total = sumL;
+    const kp = s.km_periode;
+    s.conso_moy = kp > 0 ? s.litres_conso / kp * 100 : null;
+    s.conso_min = consos.length ? Math.min(...consos) : null;
+    s.conso_max = consos.length ? Math.max(...consos) : null;
+    s.conso_last = out[out.length - 1].conso;
+    s.prix_moy = sumL ? sumPrix / sumL : null;
+    s.prix_min = prixLs.length ? Math.min(...prixLs) : null;
+    s.prix_max = prixLs.length ? Math.max(...prixLs) : null;
+    s.prix_last = out[out.length - 1].prix_l;
+    s.prix_evol = out[0].prix_l ? s.prix_last / out[0].prix_l - 1 : null;
+    s.cout_km = kp > 0 ? s.depense_periode / kp : null;
+    s.cout_100 = s.cout_km !== null ? s.cout_km * 100 : null;
+    s.km_an = kmAn; s.reservoir = reservoir;
+    s.budget_obs = kmAn && s.cout_km !== null ? kmAn * s.cout_km : null;
+    s.budget_prix = kmAn && s.conso_moy && s.prix_last ? kmAn * s.conso_moy / 100 * s.prix_last : null;
+    s.budget_mois = s.budget_prix !== null ? s.budget_prix / 12 : null;
+    s.autonomie = reservoir && s.conso_moy ? reservoir / s.conso_moy * 100 : null;
+    s.prochain_plein = s.km_moy ? s.km_actuel + s.km_moy : null;
+
+    // Indicateurs utilisant les dates (si renseignées)
+    const dated = out.filter((r) => r.date);
+    s.km_an_reel = null; s.depense_12m = null;
+    s.date_last = dated.length ? dated[dated.length - 1].date : null;
+    if (dated.length >= 2) {
+      const d0 = Date.parse(dated[0].date), d1 = Date.parse(dated[dated.length - 1].date);
+      const days = (d1 - d0) / 86400000;
+      if (days >= 30) s.km_an_reel = (dated[dated.length - 1].km - dated[0].km) / days * 365;
+    }
+    if (dated.length) {
+      const t = today ? new Date(today) : new Date();
+      t.setDate(t.getDate() - 365);
+      const lim = t.toISOString().slice(0, 10);
+      s.depense_12m = sum(dated.filter((r) => r.date >= lim).map((r) => r.prix));
+    }
+
+    // ---------- Contrôle des pleins (détection des erreurs de saisie) ----------
+    // Conso de référence = médiane des consos : une valeur fausse ne la déplace presque pas
+    // (contrairement à la moyenne), elle sert donc de base fiable aux contrôles.
+    s.conso_ref = median(consos);
+    // Autonomie d'un réservoir plein = Réservoir ÷ conso de référence × 100
+    s.autonomie_max = reservoir && s.conso_ref ? reservoir / s.conso_ref * 100 : null;
+    for (const r of out) {
+      r.alerts = [];
+      if (reservoir && r.litres > reservoir * TOL_RESERVOIR)
+        r.alerts.push({ type: 'litres', val: r.litres, lim: reservoir });
+      if (s.autonomie_max && r.km_parc !== null && r.km_parc > s.autonomie_max * TOL_AUTONOMIE)
+        r.alerts.push({ type: 'km', val: r.km_parc, lim: s.autonomie_max });
+      if (r.conso !== null && s.conso_ref && consos.length >= 4 && !r.alerts.some((a) => a.type === 'km') &&
+        (r.conso < s.conso_ref * CONSO_BAS || r.conso > s.conso_ref * CONSO_HAUT))
+        r.alerts.push({ type: 'conso', val: r.conso, lim: s.conso_ref });
+    }
+    s.n_alertes = out.filter((r) => r.alerts.length).length;
+    return { rows: out, s };
+  }
+
+  // Seuils des contrôles
+  const TOL_RESERVOIR = 1.05;  // litres > capacité + 5 % (jauge, tuyau…)
+  const TOL_AUTONOMIE = 1.10;  // km parcourus > autonomie + 10 %
+  const CONSO_BAS = 0.65, CONSO_HAUT = 1.5; // conso < 65 % ou > 150 % de la référence
+
+  function median(a) {
+    if (!a.length) return null;
+    const s = [...a].sort((x, y) => x - y), m = s.length >> 1;
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+
+  // ---------- Dépenses et prix de revient kilométrique ----------
+  const CATS = [
+    { id: 'carburant', label: 'Carburant', color: '#f08a24', duree: 0, auto: true },
+    { id: 'pieces', label: 'Pièces et consommables', color: '#2f6fde', duree: 0 },
+    { id: 'assurance', label: 'Assurance', color: '#7a5af0', duree: 12 },
+    { id: 'ct', label: 'Contrôle technique', color: '#0f9d94', duree: 24 },
+    { id: 'admin', label: 'Carte grise et administratif', color: '#c98a06', duree: 0 },
+    { id: 'peage', label: 'Péages et stationnement', color: '#e05297', duree: 0 },
+    { id: 'autre', label: 'Autre', color: '#8590a2', duree: 0 },
+  ];
+  const DAY = 86400000;
+  const dnum = (iso) => Math.round(Date.parse(iso + 'T00:00:00Z') / DAY);          // jour n° (UTC)
+  const diso = (n) => new Date(n * DAY).toISOString().slice(0, 10);
+  function addMonths(iso, m) {
+    const [y, mo, d] = iso.split('-').map(Number);
+    const t = new Date(Date.UTC(y, mo - 1 + m, 1));
+    const last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+    t.setUTCDate(Math.min(d, last));
+    return t.toISOString().slice(0, 10);
+  }
+  // Part d'une dépense attribuée à un véhicule (dépense partagée = parts égales)
+  const share = (e, nVeh) => (e.vehicule_id === null || e.vehicule_id === undefined ? 1 / Math.max(1, nVeh) : 1);
+  const depensesVeh = (depenses, vid) => (depenses || []).filter((e) => e.vehicule_id === vid || e.vehicule_id === null || e.vehicule_id === undefined);
+  // Intervalle couvert par une dépense : [début, fin[ en jours. Ponctuelle : le seul jour de la dépense.
+  function span(e) {
+    const s = dnum(e.date);
+    return e.duree > 0 ? [s, dnum(addMonths(e.date, e.duree))] : [s, s + 1];
+  }
+  // Montant d'une dépense tombant dans [a, b[ (au prorata du temps pour une dépense étalée)
+  function partIn(e, a, b, nVeh) {
+    const [s, t] = span(e);
+    const ov = Math.min(b, t) - Math.max(a, s);
+    return ov > 0 ? e.montant * share(e, nVeh) * ov / (t - s) : 0;
+  }
+
+  // Périodes proposées : tout, 12 derniers mois, puis chaque année ayant des pleins datés
+  function periodes(pleins, today) {
+    const ys = [...new Set(pleins.filter((p) => p.date).map((p) => p.date.slice(0, 4)))].sort().reverse();
+    return ['tout', '12m', ...ys];
+  }
+  function periodeBornes(per, today) {
+    const t = today || new Date().toISOString().slice(0, 10);
+    if (per === '12m') return [diso(dnum(t) - 365), t];
+    if (/^\d{4}$/.test(per)) return [per + '-01-01', per + '-12-31'];
+    return ['0000-01-01', '9999-12-31'];
+  }
+
+  /* Prix de revient kilométrique sur une période [début, fin].
+   * Les km ne sont connus qu'aux pleins : quand une borne de la période tombe entre deux pleins datés,
+   * le kilométrage à cette date est estimé au prorata du temps entre ces deux pleins (roulage régulier),
+   * et le carburant du plein suivant est compté au prorata des km situés dans la période.
+   *   Km de début (borne entre P et N) = Km(P) + (Km(N) − Km(P)) × (date début − date P) ÷ (date N − date P)
+   *   Carburant de l'intervalle P→N   = montants des pleins de (P ; N] × part des km de l'intervalle dans la période
+   * La fin de la période est ramenée au dernier plein daté si elle est postérieure (km inconnus au-delà).
+   *   Coût au km (poste) = montant du poste dans la fenêtre ÷ (Km de fin − Km de début)
+   * Autres dépenses : ponctuelles comptées si leur date est dans la fenêtre, étalées au prorata des jours.
+   */
+  function coutRevient(pleins, depenses, vid, nVeh, per, today) {
+    const [p0, p1] = periodeBornes(per, today);
+    const all = [...pleins].sort((a, b) => a.km - b.km);
+    const D = all.filter((p) => p.date);
+    const res = { per, ok: false, nonDates: all.length - D.length, parts: {}, parKm: {} };
+    if (D.length < 2) { res.raison = 'Il faut au moins deux pleins datés.'; return res; }
+    const t = (p) => dnum(p.date);
+    const T0 = p0 === '0000-01-01' ? -Infinity : dnum(p0), T1 = p1 === '9999-12-31' ? Infinity : dnum(p1) + 1; // période [T0 ; T1[
+    // carburant des pleins situés après X jusqu'à Y inclus (pleins sans date compris, repérés par leur km)
+    const fuel = (X, Y) => all.filter((p) => p.km > X.km && p.km <= Y.km).reduce((x, p) => x + p.prix, 0);
+    const kmAt = (P, N, T) => P.km + (N.km - P.km) * (T - t(P)) / (t(N) - t(P));
+    const iN = D.findIndex((p) => t(p) >= T0);          // 1er plein daté dans la période
+    let iB = -1; D.forEach((p, i) => { if (t(p) < T1) iB = i; });  // dernier plein daté dans la période
+    if (iN < 0 || iB < 0) { res.raison = 'Aucun plein daté ne couvre cette période.'; return res; }
+    let kmA, Ta, kmB, Tb, carb = 0, debutEstime = false, finEstimee = false;
+    if (iB < iN) {
+      // période entièrement comprise entre deux pleins
+      const P = D[iB], N = D[iN];
+      kmA = kmAt(P, N, T0); kmB = kmAt(P, N, T1); Ta = T0; Tb = T1; debutEstime = finEstimee = true;
+      carb = fuel(P, N) * (kmB - kmA) / (N.km - P.km);
+    } else {
+      if (iN > 0 && t(D[iN]) > T0) {       // début entre D[iN-1] et D[iN]
+        const P = D[iN - 1], N = D[iN];
+        kmA = kmAt(P, N, T0); Ta = T0; debutEstime = true;
+        carb += fuel(P, N) * (N.km - kmA) / (N.km - P.km);
+      } else { kmA = D[iN].km; Ta = t(D[iN]); }
+      carb += fuel(D[iN], D[iB]);
+      if (iB < D.length - 1 && isFinite(T1)) {   // fin entre D[iB] et D[iB+1]
+        const P = D[iB], N = D[iB + 1];
+        kmB = kmAt(P, N, T1); Tb = T1; finEstimee = true;
+        carb += fuel(P, N) * (kmB - P.km) / (N.km - P.km);
+      } else { kmB = D[iB].km; Tb = t(D[iB]) + 1; }
+    }
+    const km = kmB - kmA;
+    if (!(km > 0) || Tb - Ta < 2) { res.raison = 'Période trop courte pour un calcul fiable.'; return res; }
+    for (const c of CATS) res.parts[c.id] = 0;
+    res.parts.carburant = carb;
+    for (const e of depensesVeh(depenses, vid)) {
+      if (!e.date || !(e.montant > 0) || !(e.categorie in res.parts)) continue;
+      res.parts[e.categorie] += partIn(e, Ta, Tb, nVeh);
+    }
+    for (const c of CATS) res.parKm[c.id] = res.parts[c.id] / km;
+    Object.assign(res, { ok: true, km, d0: diso(Ta), d1: diso(Tb - 1), jours: Tb - Ta, km0: kmA, km1: kmB,
+      debutEstime, finEstimee, finAuDernierPlein: !finEstimee && Tb < T1, dernierPlein: D[iB].date });
+    return res;
+  }
+  const totalCats = (res, cats) => cats.reduce((x, c) => x + (res.parts[c] || 0), 0);
+
+  /* Dépense par mois (vue « budget ») : pleins datés comptés au mois du plein, dépenses
+   * ponctuelles au mois de la dépense, dépenses étalées réparties au prorata des jours de chaque mois.
+   * Les mois vont du 1er mois ayant une donnée jusqu'au mois en cours. */
+  function parMois(pleins, depenses, vid, nVeh, today) {
+    const t = today || new Date().toISOString().slice(0, 10);
+    const deps = depensesVeh(depenses, vid).filter((e) => e.date && e.montant > 0);
+    const dates = [...pleins.filter((p) => p.date).map((p) => p.date), ...deps.map((e) => e.date)].filter((d) => d <= t).sort();
+    if (!dates.length) return [];
+    const mois = [];
+    for (let m = dates[0].slice(0, 7) + '-01'; m <= t; m = addMonths(m, 1)) mois.push(m.slice(0, 7));
+    const out = mois.map((m) => ({ mois: m, parts: Object.fromEntries(CATS.map((c) => [c.id, 0])) }));
+    const idx = Object.fromEntries(mois.map((m, i) => [m, i]));
+    for (const p of pleins) if (p.date && p.date <= t && p.date.slice(0, 7) in idx) out[idx[p.date.slice(0, 7)]].parts.carburant += p.prix;
+    for (const e of deps) {
+      if (!(e.categorie in out[0].parts)) continue;
+      for (const o of out) {
+        const a = dnum(o.mois + '-01'), b = dnum(addMonths(o.mois + '-01', 1));
+        o.parts[e.categorie] += partIn(e, a, Math.min(b, dnum(t) + 1), nVeh);
+      }
+    }
+    return out;
+  }
+
+  const SEED = {
+    schema: 1,
+    vehicules: [
+      { id: 1, nom: 'Peugeot 205', immat: 'GQ-049-NA', reservoir: 50, km_an: 7000 },
+      { id: 2, nom: 'Peugeot 205', immat: 'HK-462-GG', reservoir: 50, km_an: 7000 },
+    ],
+    pleins: [],
+    reglages: { vehicule_courant: 1, theme: 'systeme' },
+  };
+  const P1 = [[441054, 80.28, 43], [441370, 53.96, 30], [441796, 73.44, 38.29], [442226, 64.49, 36.64],
+    [442645, 54.10, 32.22], [443199, 64.68, 38.07], [443761, 62.11, 35.31], [444323, 57.03, 33.37],
+    [444877, 60.29, 35.28], [445489, 62.65, 36.85], [446056, 55.97, 33.02], [446510, 52.46, 31.06],
+    [446903, 52.81, 30.90], [447284, 56.49, 32.30], [447677, 62.36, 30.01], [448152, 73.29, 35.77],
+    [448661, 78.83, 38.85], [449222, 80.03, 41.06], [449644, 61.16, 29.14], [450124, 56.81, 28.00],
+    [450500, 39.74, 19.92]];
+  let id = 1;
+  for (const [km, prix, litres] of P1) SEED.pleins.push({ id: id++, vehicule_id: 1, date: null, km, prix, litres, complet: true, station: '', note: '' });
+  SEED.pleins.push({ id: id++, vehicule_id: 2, date: null, km: 55528, prix: 90.45, litres: 43.09, complet: true, station: '', note: '' });
+
+  SEED.depenses = [];
+  const api = { compute, SEED, CATS, coutRevient, totalCats, parMois, periodes, periodeBornes, depensesVeh, addMonths,
+    seuils: { TOL_RESERVOIR, TOL_AUTONOMIE, CONSO_BAS, CONSO_HAUT } };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Calc = api;
+})(this);
+
+</script>
+<script>
+/* Conso 205 — cœur de la synchronisation (partagé entre l'appli PC et la page téléphone)
+ *
+ * Chaque véhicule, plein et dépense porte :
+ *   uid  : identifiant unique (le même sur tous les appareils)
+ *   maj  : horodatage (ms) de sa dernière modification
+ * Les suppressions sont mémorisées dans « supprimes » [{uid, maj}] pour être propagées.
+ * Fusion de deux versions (PC / en ligne) : pour chaque uid, la version la plus récente gagne ;
+ * un enregistrement supprimé après sa dernière modification disparaît.
+ * Les numéros « id » restent locaux (affichage) : ils sont renumérotés si deux appareils en ont créé un identique.
+ */
+(function (root) {
+  const COLS = ['vehicules', 'pleins', 'depenses'];
+  const SKIP = new Set(['id', 'maj', 'vehicule_id']);   // champs ignorés pour détecter une modification
+
+  function uid() {
+    const c = (typeof globalThis !== 'undefined' && globalThis.crypto) || null;
+    const b = new Uint8Array(9);
+    if (c && c.getRandomValues) c.getRandomValues(b); else for (let i = 0; i < b.length; i++) b[i] = Math.floor(Math.random() * 256);
+    return Array.from(b, (x) => x.toString(36).padStart(2, '0')).join('').slice(0, 14);
+  }
+  const content = (r) => JSON.stringify(Object.keys(r).filter((k) => !SKIP.has(k)).sort().map((k) => [k, r[k]]));
+
+  // Lien plein/dépense → véhicule par uid (« vuid »), qui ne dépend pas de la numérotation locale
+  function linkVehicles(data) {
+    const byId = new Map(data.vehicules.map((v) => [v.id, v.uid]));
+    for (const col of ['pleins', 'depenses']) for (const r of data[col] || []) {
+      if (r.vehicule_id === null || r.vehicule_id === undefined) r.vuid = null;
+      else if (byId.has(r.vehicule_id)) r.vuid = byId.get(r.vehicule_id);
+    }
+  }
+
+  // Donne un uid aux enregistrements qui n'en ont pas (données d'avant la synchro)
+  function ensureUids(data) {
+    data.depenses = data.depenses || [];
+    data.supprimes = data.supprimes || [];
+    for (const col of COLS) for (const r of data[col]) { if (!r.uid) r.uid = uid(); if (typeof r.maj !== 'number') r.maj = 0; }
+    linkVehicles(data);
+    return data;
+  }
+
+  /* Horodate ce qui a changé entre la dernière version enregistrée (prev) et la nouvelle (next).
+   * Les enregistrements sont appariés par uid, ou à défaut par leur numéro local (id). */
+  function stampChanges(prev, next, now) {
+    now = now || Date.now();
+    next.depenses = next.depenses || [];
+    const tomb = new Map();
+    for (const t of [...((prev && prev.supprimes) || []), ...(next.supprimes || [])]) if (!tomb.has(t.uid) || tomb.get(t.uid) < t.maj) tomb.set(t.uid, t.maj);
+    next.supprimes = [...tomb].map(([u, m]) => ({ uid: u, maj: m }));
+    for (const col of COLS) {
+      const pv = (prev && prev[col]) || [];
+      const byUid = new Map(pv.filter((r) => r.uid).map((r) => [r.uid, r]));
+      const byId = new Map(pv.map((r) => [r.id, r]));
+      const seen = new Set();
+      for (const r of next[col]) {
+        let p = r.uid ? byUid.get(r.uid) : null;
+        if (!p && !r.uid) { p = byId.get(r.id); if (p && seen.has(p.uid)) p = null; if (p) r.uid = p.uid; }
+        if (!r.uid) r.uid = uid();
+        seen.add(r.uid);
+        if (!p) { if (!(typeof r.maj === 'number' && r.maj > 0)) r.maj = now; continue; }
+        // vuid recalculé ensuite : on compare sans lui pour ne pas compter un simple re-lien
+        const a = { ...p }, b = { ...r }; delete a.vuid; delete b.vuid;
+        r.maj = content(a) === content(b) ? p.maj : now;
+      }
+      const keep = new Set(next[col].map((r) => r.uid));
+      for (const p of pv) if (p.uid && !keep.has(p.uid) && !next.supprimes.some((s) => s.uid === p.uid)) next.supprimes.push({ uid: p.uid, maj: now });
+    }
+    linkVehicles(next);
+    return next;
+  }
+
+  // Fusion : version la plus récente de chaque enregistrement ; réglages et préférences = ceux de l'appareil local
+  function merge(local, remote) {
+    const out = { ...local };
+    const tomb = new Map();
+    for (const s of [...(local.supprimes || []), ...(remote.supprimes || [])]) if (!tomb.has(s.uid) || tomb.get(s.uid) < s.maj) tomb.set(s.uid, s.maj);
+    out.supprimes = [...tomb].map(([u, m]) => ({ uid: u, maj: m }));
+    for (const col of COLS) {
+      const m = new Map();
+      for (const r of remote[col] || []) m.set(r.uid, r);
+      for (const r of local[col] || []) { const o = m.get(r.uid); if (!o || (r.maj || 0) >= (o.maj || 0)) m.set(r.uid, r); }
+      out[col] = [...m.values()].filter((r) => !(tomb.has(r.uid) && tomb.get(r.uid) >= (r.maj || 0))).map((r) => ({ ...r }));
+    }
+    out.correctifs = [...new Set([...(local.correctifs || []), ...(remote.correctifs || [])])];
+    out.schema = Math.max(local.schema || 1, remote.schema || 1);
+    return fixIds(dedupe(out));
+  }
+
+  /* Doublons créés sur deux appareils indépendamment (ex. nouveau PC fusionné avec les données en ligne) :
+   * même immatriculation → même véhicule ; même véhicule + même km → même plein ;
+   * même véhicule + date + catégorie + montant → même dépense. On garde la version la plus récente,
+   * les autres sont marquées supprimées pour que tous les appareils convergent. */
+  function dedupe(data) {
+    const norm = (x) => String(x || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
+    const alias = new Map(), drop = [];
+    const pick = (arr, keyOf) => {
+      const best = new Map();
+      for (const r of arr) {
+        const k = keyOf(r); if (k === null) { best.set(Symbol(), r); continue; }
+        const o = best.get(k);
+        if (!o) { best.set(k, r); continue; }
+        const [w, l] = (r.maj || 0) > (o.maj || 0) ? [r, o] : [o, r];
+        best.set(k, w); drop.push(l); alias.set(l.uid, w.uid);
+      }
+      return [...best.values()];
+    };
+    data.vehicules = pick(data.vehicules, (v) => (norm(v.immat) ? norm(v.immat) : null));
+    for (const col of ['pleins', 'depenses']) for (const r of data[col]) if (alias.has(r.vuid)) r.vuid = alias.get(r.vuid);
+    data.pleins = pick(data.pleins, (p) => (p.vuid ? p.vuid + '|' + p.km : null));
+    data.depenses = pick(data.depenses, (e) => [e.vuid ?? 'tous', e.date, e.categorie, e.montant].join('|'));
+    const tomb = new Map((data.supprimes || []).map((t) => [t.uid, t.maj]));
+    for (const l of drop) if (!tomb.has(l.uid) || tomb.get(l.uid) < (l.maj || 0)) tomb.set(l.uid, l.maj || 0);
+    data.supprimes = [...tomb].map(([u, m]) => ({ uid: u, maj: m }));
+    return data;
+  }
+
+  // Numéros locaux uniques + lien véhicule retrouvé par uid
+  function fixIds(data) {
+    const renum = (arr) => {
+      const used = new Set(); let next = Math.max(0, ...arr.map((r) => Number(r.id) || 0)) + 1;
+      for (const r of arr) { if (!(Number(r.id) > 0) || used.has(r.id)) r.id = next++; used.add(r.id); }
+    };
+    data.vehicules.sort((a, b) => (a.id || 0) - (b.id || 0));
+    renum(data.vehicules);
+    const vid = new Map(data.vehicules.map((v) => [v.uid, v.id]));
+    for (const col of ['pleins', 'depenses']) {
+      data[col] = data[col].filter((r) => r.vuid === null || r.vuid === undefined || vid.has(r.vuid));
+      for (const r of data[col]) if (r.vuid !== undefined) r.vehicule_id = r.vuid === null ? null : vid.get(r.vuid);
+      data[col].sort((a, b) => (a.id || 0) - (b.id || 0));
+      renum(data[col]);
+    }
+    return data;
+  }
+
+  // Partie partagée en ligne (sans les réglages propres à chaque appareil)
+  function shared(data) {
+    return { app: 'Conso 205', schema: data.schema || 2, vehicules: data.vehicules, pleins: data.pleins, depenses: data.depenses || [],
+      supprimes: data.supprimes || [], correctifs: data.correctifs || [] };
+  }
+  // Empreinte du contenu partagé (pour savoir s'il faut envoyer / recharger)
+  function signature(data) {
+    const s = shared(data);
+    const norm = (arr) => arr.map((r) => r.uid + ':' + (r.maj || 0) + ':' + content(r)).sort().join('|');
+    return [norm(s.vehicules), norm(s.pleins), norm(s.depenses), s.supprimes.map((x) => x.uid + ':' + x.maj).sort().join(','), [...s.correctifs].sort().join(',')].join('#');
+  }
+
+  // Encodage base64 UTF-8 (API GitHub « contents »), navigateur et Node
+  function b64encode(str) {
+    if (typeof Buffer !== 'undefined') return Buffer.from(str, 'utf8').toString('base64');
+    const bytes = new TextEncoder().encode(str); let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function b64decode(b64) {
+    b64 = String(b64 || '').replace(/\s/g, '');
+    if (typeof Buffer !== 'undefined') return Buffer.from(b64, 'base64').toString('utf8');
+    const bin = atob(b64); const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  /* Accès au fichier du dépôt privé via l'API GitHub (fetch). Le jeton n'est jamais écrit dans les données.
+   * Retourne { data, sha } ou { data: null, sha: null } si le fichier n'existe pas encore. */
+  function gh(cfg) {
+    const base = (cfg.api || 'https://api.github.com').replace(/\/$/, '');
+    const url = `${base}/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${cfg.path || 'donnees.json'}`;
+    const headers = { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+    const err = async (r, what) => {
+      let msg = ''; try { msg = (await r.json()).message || ''; } catch { }
+      const e = new Error(r.status === 401 ? 'Jeton refusé (invalide ou expiré).'
+        : r.status === 403 ? 'Accès refusé : le jeton doit avoir le droit « Contents : Read and write » sur ce dépôt.'
+          : r.status === 404 ? 'Dépôt introuvable : vérifie le propriétaire, le nom du dépôt et l\'accès du jeton.'
+            : `${what} : erreur GitHub ${r.status}${msg ? ' (' + msg + ')' : ''}`);
+      e.status = r.status; return e;
+    };
+    return {
+      async repoOk() {
+        const r = await fetch(`${base}/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`, { headers });
+        if (!r.ok) throw await err(r, 'Dépôt');
+        const j = await r.json();
+        return { prive: !!j.private, nom: j.full_name };
+      },
+      async get() {
+        const r = await fetch(url + '?t=' + Date.now(), { headers, cache: 'no-store' });
+        if (r.status === 404) {
+          // dépôt accessible mais fichier absent ?
+          const rr = await fetch(`${base}/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`, { headers });
+          if (rr.ok) return { data: null, sha: null };
+          throw await err(rr, 'Dépôt');
+        }
+        if (!r.ok) throw await err(r, 'Lecture');
+        const j = await r.json();
+        let txt;
+        if (j.content) txt = b64decode(j.content);
+        else if (j.download_url || j.git_url) {   // fichier > 1 Mo : lecture brute
+          const raw = await fetch(url, { headers: { ...headers, Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' });
+          if (!raw.ok) throw await err(raw, 'Lecture');
+          txt = await raw.text();
+        } else txt = '{}';
+        return { data: JSON.parse(txt), sha: j.sha };
+      },
+      async put(data, sha, message) {
+        const body = { message: message || 'Conso 205 : mise à jour', content: b64encode(JSON.stringify(data, null, 1)) };
+        if (sha) body.sha = sha;
+        const r = await fetch(url, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (r.status === 409 || r.status === 422) { const e = new Error('conflit'); e.conflit = true; throw e; }
+        if (!r.ok) throw await err(r, 'Écriture');
+        const j = await r.json();
+        return j.content && j.content.sha;
+      },
+    };
+  }
+
+  const api = { uid, ensureUids, stampChanges, merge, fixIds, dedupe, shared, signature, linkVehicles, gh, b64encode, b64decode };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Sync = api;
+})(this);
+
+</script>
+<script>
+'use strict';
+const $ = (s) => document.querySelector(s);
+const KEY = 'conso205-telephone';
+const fnum = (x, d = 2) => (x === null || x === undefined || !isFinite(x) ? '—' : x.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }));
+const fdate = (iso) => (iso ? iso.split('-').reverse().join('/') : '');
+const pnum = (s) => { s = String(s ?? '').replace(/[\s  €L]/g, '').replace(',', '.'); if (s === '') return null; const v = Number(s); return isFinite(v) ? v : NaN; };
+const today = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const params = new URLSearchParams(location.search);
+
+let CFG = null, G = null, DATA = null, VUID = null;
+
+function loadCfg() { try { CFG = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { CFG = null; } }
+function saveCfg() { localStorage.setItem(KEY, JSON.stringify(CFG)); }
+function show(id) { ['setup', 'main', 'loading'].forEach((x) => $('#' + x).classList.toggle('hidden', x !== id)); $('#menuBtn').classList.toggle('hidden', id !== 'main'); }
+const api = () => Sync.gh({ owner: CFG.o, repo: CFG.r, token: CFG.t, path: 'donnees.json', api: params.get('api') || undefined });
+
+// Lien de configuration venant du QR code du PC : #c=<base64url>
+(function readHash() {
+  const m = location.hash.match(/[#&]c=([^&]+)/);
+  if (!m) return;
+  try {
+    const j = JSON.parse(Sync.b64decode(m[1].replace(/-/g, '+').replace(/_/g, '/')));
+    if (j.o && j.r && j.t) { CFG = { o: j.o, r: j.r, t: j.t, v: CFG?.v }; saveCfg(); }
+  } catch { }
+  history.replaceState(null, '', location.pathname + location.search);   // le jeton disparaît de l'adresse
+})();
+
+async function charger() {
+  show('loading');
+  try {
+    G = api();
+    const { data } = await G.get();
+    if (!data || !Array.isArray(data.pleins)) throw new Error('Le dépôt ne contient pas encore de données : active d\'abord la synchronisation sur le PC.');
+    DATA = data;
+    VUID = (CFG.v && DATA.vehicules.some((v) => v.uid === CFG.v)) ? CFG.v : DATA.vehicules[0]?.uid;
+    show('main'); renderAll();
+  } catch (e) {
+    show('setup');
+    $('#sOwner').value = CFG?.o || ''; $('#sRepo').value = CFG?.r || 'conso-205-donnees'; $('#sTok').value = CFG?.t || '';
+    $('#sMsg').innerHTML = `<div class="msg err">${esc(errTxt(e))}</div>`;
+  }
+}
+const errTxt = (e) => (/Failed to fetch|NetworkError|Load failed/i.test(String(e && e.message)) ? 'Pas de connexion Internet.' : (e && e.message) || String(e));
+
+// ---------- affichage ----------
+const veh = () => DATA.vehicules.find((v) => v.uid === VUID);
+const pleinsV = () => DATA.pleins.filter((p) => p.vuid === VUID || (p.vuid === undefined && p.vehicule_id === veh().id));
+function renderAll() {
+  const v = veh();
+  $('#sub').textContent = v ? `${v.immat} · ${v.nom}` : 'Aucun véhicule';
+  $('#vehs').innerHTML = DATA.vehicules.map((x) => `<button data-v="${x.uid}" class="${x.uid === VUID ? 'on' : ''}">${esc(x.immat)}</button>`).join('');
+  $('#vehs').classList.toggle('hidden', DATA.vehicules.length < 2);
+  document.querySelectorAll('#vehs button').forEach((b) => (b.onclick = () => { VUID = b.dataset.v; CFG.v = VUID; saveCfg(); resetForm(); renderAll(); }));
+  const { rows, s } = Calc.compute(pleinsV(), v.reservoir, v.km_an);
+  const last = rows[rows.length - 1];
+  $('#lastCard').innerHTML = last ? `<div class="last">
+      <div><span>Dernier plein</span><b>${fnum(last.km, 0)} km</b></div>
+      <div><span>Date</span><b>${last.date ? fdate(last.date) : '—'}</b></div>
+      <div><span>Conso moyenne</span><b>${fnum(s.conso_moy)}</b> <span style="display:inline">L/100</span></div></div>`
+    : '<div class="sub">Aucun plein pour ce véhicule.</div>';
+  $('#km').placeholder = s.km_actuel ? String(Math.round(s.km_actuel + (s.km_moy || 0))) : '';
+  $('#pl').placeholder = s.prix_last ? fnum(s.prix_last, 3) : '';
+  $('#list').innerHTML = rows.slice(-6).reverse().map((r) => `<li><span class="k">${fnum(r.km, 0)} km</span>
+      <span class="c">${r.conso !== null ? fnum(r.conso) + ' L/100' : '—'}${r.alerts && r.alerts.length ? ' <span class="pill warn">?</span>' : ''}</span>
+      <span class="d">${r.date ? fdate(r.date) : 'sans date'}${r.km_parc ? ' · ' + fnum(r.km_parc, 0) + ' km' : ''}</span>
+      <span class="p">${fnum(r.prix)} € · ${fnum(r.litres)} L</span></li>`).join('') || '<li class="sub">—</li>';
+  $('#foot').textContent = `Dépôt privé ${CFG.o}/${CFG.r}`;
+  check();
+}
+
+// ---------- ticket de pompe : 2 valeurs saisies, la 3e calculée ----------
+const TRIO = ['prix', 'litres', 'pl'];
+let order = [];
+const autoKey = () => (order.length >= 2 ? TRIO.find((k) => !order.slice(-2).includes(k)) : null);
+function putVal(k, x, d) { $('#' + k).value = x === null || !isFinite(x) ? '' : String(Number(x.toFixed(d))).replace('.', ','); }
+function recalc() {
+  const ak = autoKey();
+  TRIO.forEach((k) => { $('#' + k).classList.toggle('auto', k === ak); });
+  $('#lPrix').classList.toggle('lab-auto', ak === 'prix'); $('#lL').classList.toggle('lab-auto', ak === 'litres'); $('#lPL').classList.toggle('lab-auto', ak === 'pl');
+  if (!ak) return;
+  const m = pnum($('#prix').value), l = pnum($('#litres').value), pl = pnum($('#pl').value);
+  if (ak === 'pl') putVal('pl', m > 0 && l > 0 ? m / l : null, 3);
+  if (ak === 'litres') putVal('litres', m > 0 && pl > 0 ? m / pl : null, 2);
+  if (ak === 'prix') putVal('prix', l > 0 && pl > 0 ? l * pl : null, 2);
+}
+TRIO.forEach((k) => $('#' + k).addEventListener('input', () => { order = order.filter((x) => x !== k); if ($('#' + k).value.trim() !== '') order.push(k); recalc(); check(); }));
+['km', 'date', 'complet'].forEach((k) => $('#' + k).addEventListener('input', check));
+
+function lire() {
+  return { km: pnum($('#km').value), date: $('#date').value || null, prix: pnum($('#prix').value), litres: pnum($('#litres').value),
+    complet: $('#complet').checked, station: $('#station').value.trim(), note: $('#note').value.trim() };
+}
+function alertMsg(a) {
+  if (a.type === 'km') return `${fnum(a.val, 0)} km depuis le plein précédent, plus que l'autonomie d'un plein (≈ ${fnum(a.lim, 0)} km) : un plein a peut-être été oublié.`;
+  if (a.type === 'litres') return `${fnum(a.val)} L, plus que le réservoir (${fnum(a.lim, 0)} L).`;
+  if (a.type === 'conso') return `Conso de ${fnum(a.val)} L/100 km, loin de l'habituelle (${fnum(a.lim)}) : vérifie le kilométrage.`;
+  return '';
+}
+function check() {
+  if (!DATA) return { errs: ['—'], warns: [] };
+  const f = lire(), v = veh(), errs = [], warns = [];
+  if (!(f.km > 0)) errs.push('Kilométrage manquant.');
+  if (!(f.prix > 0)) errs.push('Montant manquant.');
+  if (!(f.litres > 0)) errs.push('Quantité manquante.');
+  const pv = pleinsV();
+  if (f.km > 0 && pv.some((p) => p.km === Math.round(f.km))) errs.push(`Un plein existe déjà à ${fnum(f.km, 0)} km.`);
+  let r = null;
+  if (f.km > 0 && f.litres > 0) {
+    const { rows } = Calc.compute([...pv, { ...f, km: Math.round(f.km), prix: f.prix > 0 ? f.prix : 0, uid: '__new' }], v.reservoir, v.km_an);
+    r = rows.find((x) => x.uid === '__new');
+    const maxKm = Math.max(0, ...pv.map((p) => p.km));
+    if (maxKm && f.km < maxKm) warns.push(`Kilométrage inférieur au dernier plein (${fnum(maxKm, 0)} km) : il sera inséré à sa place.`);
+    if (r) r.alerts.forEach((a) => warns.push(alertMsg(a)));
+  }
+  const pl = f.prix > 0 && f.litres > 0 ? f.prix / f.litres : null;
+  if (pl && (pl < 0.8 || pl > 3.5)) warns.push(`Prix au litre inhabituel : ${fnum(pl, 3)} €/L.`);
+  $('#prev').innerHTML = `<div><span>Km parcourus</span><b>${r && r.km_parc !== null ? fnum(r.km_parc, 0) : '—'}</b></div>
+    <div><span>Conso L/100</span><b>${r && r.conso !== null ? fnum(r.conso) : (f.complet ? '—' : 'au suivant')}</b></div>
+    <div><span>Coût €/km</span><b>${r && r.cout_km !== null ? fnum(r.cout_km, 3) : '—'}</b></div>`;
+  return { f, errs, warns, r };
+}
+let forced = false;
+function showMsgs(res, withErrs) {
+  $('#msgs').innerHTML = (withErrs ? res.errs.map((e) => `<div class="msg err">${esc(e)}</div>`).join('') : '') + res.warns.map((w) => `<div class="msg warn">⚠ ${esc(w)}</div>`).join('');
+  $('#save').textContent = forced && res.warns.length ? 'Enregistrer quand même' : 'Enregistrer le plein';
+}
+document.querySelectorAll('#main input').forEach((i) => i.addEventListener('input', () => { forced = false; showMsgs(check(), false); }));
+
+function resetForm() {
+  ['km', 'prix', 'litres', 'pl', 'station', 'note'].forEach((k) => ($('#' + k).value = ''));
+  $('#date').value = today(); $('#complet').checked = true; order = []; forced = false; recalc(); $('#msgs').innerHTML = '';
+}
+
+// ---------- enregistrement : relecture du fichier, ajout, écriture (nouvel essai si conflit) ----------
+$('#save').onclick = async () => {
+  const res = check();
+  if (res.errs.length) { showMsgs(res, true); return; }
+  if (res.warns.length && !forced) { forced = true; showMsgs(res, false); return; }
+  const f = res.f, btn = $('#save');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Enregistrement…';
+  try {
+    for (let essai = 0; ; essai++) {
+      const { data, sha } = await G.get();
+      const v = data.vehicules.find((x) => x.uid === VUID);
+      if (!v) throw new Error('Véhicule introuvable dans les données en ligne.');
+      if (data.pleins.some((p) => p.vuid === v.uid && p.km === Math.round(f.km))) throw new Error(`Un plein existe déjà à ${fnum(f.km, 0)} km.`);
+      const plein = { id: Math.max(0, ...data.pleins.map((p) => Number(p.id) || 0)) + 1, uid: Sync.uid(), vuid: v.uid, vehicule_id: v.id,
+        date: f.date, km: Math.round(f.km), prix: Math.round(f.prix * 100) / 100, litres: Math.round(f.litres * 100) / 100,
+        complet: f.complet, station: f.station, note: f.note, maj: Date.now() };
+      data.pleins.push(plein);
+      try { await G.put(data, sha, `Plein ${plein.km} km – ${v.immat} (téléphone)`); DATA = data; break; }
+      catch (e) { if (!e.conflit || essai >= 4) throw e; }
+    }
+    const r = res.r;
+    resetForm(); renderAll();
+    $('#msgs').innerHTML = `<div class="msg ok">✓ Plein enregistré${r && r.conso !== null ? ` · ${fnum(r.conso)} L/100 km` : ''}. Il apparaîtra sur le PC à la prochaine synchro.</div>`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    $('#msgs').innerHTML = `<div class="msg err">${esc(errTxt(e))} — rien n'a été perdu : réessaie.</div>`;
+  } finally { btn.disabled = false; if (!$('#msgs .msg.ok')) btn.textContent = 'Enregistrer le plein'; else btn.textContent = 'Enregistrer le plein'; }
+};
+
+// ---------- configuration manuelle ----------
+$('#sGo').onclick = async () => {
+  const o = $('#sOwner').value.trim(), r = $('#sRepo').value.trim(), t = $('#sTok').value.trim();
+  if (!o || !r || !t) { $('#sMsg').innerHTML = '<div class="msg err">Renseigne les trois champs.</div>'; return; }
+  $('#sMsg').innerHTML = '<div class="msg"><span class="spin"></span>Connexion…</div>';
+  try {
+    const info = await Sync.gh({ owner: o, repo: r, token: t, api: params.get('api') || undefined }).repoOk();
+    if (!info.prive) throw new Error('Ce dépôt est public : choisis un dépôt privé.');
+    CFG = { o, r, t }; saveCfg(); charger();
+  } catch (e) { $('#sMsg').innerHTML = `<div class="msg err">${esc(errTxt(e))}</div>`; }
+};
+
+// ---------- menu ----------
+$('#menuBtn').onclick = () => { $('#shInfo').textContent = `Dépôt privé ${CFG.o}/${CFG.r}`; $('#sheet').classList.remove('hidden'); };
+$('#shClose').onclick = () => $('#sheet').classList.add('hidden');
+$('#sheet').onclick = (e) => { if (e.target.id === 'sheet') $('#sheet').classList.add('hidden'); };
+$('#shReload').onclick = () => { $('#sheet').classList.add('hidden'); charger(); };
+$('#shLogout').onclick = () => {
+  if (!confirm('Effacer le jeton de ce téléphone ? Il faudra rescanner le QR code.')) return;
+  localStorage.removeItem(KEY); CFG = null; DATA = null; $('#sheet').classList.add('hidden'); $('#sMsg').innerHTML = ''; show('setup');
+};
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && CFG && DATA && !$('#km').value) charger(); });
+
+// ---------- démarrage ----------
+$('#date').value = today();
+loadCfg();
+if (CFG && CFG.o && CFG.r && CFG.t) charger(); else show('setup');
+</script>
+</body>
+</html>
