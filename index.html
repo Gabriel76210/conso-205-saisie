@@ -100,6 +100,8 @@ h2 { font-size: 15px; margin: 0 0 8px; }
       <h2>Connexion à ton dépôt privé</h2>
       <p class="sub" style="margin:0 0 14px">Le plus simple : dans Conso 205 sur le PC, Paramètres › Synchronisation › « QR code pour le téléphone », puis scanne-le.
         Sinon, renseigne les champs ci-dessous. Le jeton reste uniquement sur ce téléphone.</p>
+      <div class="f"><label>Lien de configuration (si tu l'as copié)</label><input id="sLink" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#c=…" style="font-size:15px"></div>
+      <div class="sub" style="margin:-4px 0 12px">ou bien :</div>
       <div class="f"><label>Propriétaire (pseudo GitHub)</label><input id="sOwner" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
       <div class="f"><label>Dépôt privé</label><input id="sRepo" value="conso-205-donnees" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
       <div class="f"><label>Jeton d'accès</label><input id="sTok" type="password" autocapitalize="off" autocomplete="off" placeholder="github_pat_…"></div>
@@ -110,6 +112,9 @@ h2 { font-size: 15px; margin: 0 0 8px; }
 
   <!-- Saisie -->
   <section id="main" class="hidden">
+    <div class="card hidden" id="tip"><h2>Ajouter à l'écran d'accueil</h2>
+      <div class="sub" id="tipTxt"></div>
+      <button class="btn ghost" id="tipOk" style="margin-top:10px">Compris</button></div>
     <div class="seg" id="vehs"></div>
     <div class="card" id="lastCard"></div>
     <div class="card">
@@ -657,15 +662,24 @@ function show(id) { ['setup', 'main', 'loading'].forEach((x) => $('#' + x).class
 const api = () => Sync.gh({ owner: CFG.o, repo: CFG.r, token: CFG.t, path: 'donnees.json', api: params.get('api') || undefined });
 
 // Lien de configuration venant du QR code du PC : #c=<base64url>
-(function readHash() {
-  const m = location.hash.match(/[#&]c=([^&]+)/);
-  if (!m) return;
-  try {
-    const j = JSON.parse(Sync.b64decode(m[1].replace(/-/g, '+').replace(/_/g, '/')));
-    if (j.o && j.r && j.t) { CFG = { o: j.o, r: j.r, t: j.t, v: CFG?.v }; saveCfg(); }
-  } catch { }
-  history.replaceState(null, '', location.pathname + location.search);   // le jeton disparaît de l'adresse
-})();
+/* La configuration reste dans l'adresse (#c=…) : sur iPhone, l'icône de l'écran d'accueil a sa propre mémoire,
+ * séparée de Safari ; en gardant la configuration dans l'adresse enregistrée par « Sur l'écran d'accueil »,
+ * l'icône se connecte seule à chaque ouverture (et survit au nettoyage automatique d'iOS). */
+function cfgFromText(txt) {
+  const m = String(txt || '').match(/[#&?]?c=([A-Za-z0-9_\-+/=]+)/);
+  if (!m) return null;
+  try { const j = JSON.parse(Sync.b64decode(m[1].replace(/-/g, '+').replace(/_/g, '/'))); return j.o && j.r && j.t ? j : null; } catch { return null; }
+}
+function readHash() {
+  const j = cfgFromText(location.hash);
+  if (!j) return false;
+  loadCfg();
+  CFG = { o: j.o, r: j.r, t: j.t, v: CFG && CFG.o === j.o ? CFG.v : undefined };
+  saveCfg();
+  return true;
+}
+const standalone = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 async function charger() {
   show('loading');
@@ -804,7 +818,8 @@ $('#save').onclick = async () => {
 
 // ---------- configuration manuelle ----------
 $('#sGo').onclick = async () => {
-  const o = $('#sOwner').value.trim(), r = $('#sRepo').value.trim(), t = $('#sTok').value.trim();
+  const lk = cfgFromText($('#sLink').value);
+  const o = lk ? lk.o : $('#sOwner').value.trim(), r = lk ? lk.r : $('#sRepo').value.trim(), t = lk ? lk.t : $('#sTok').value.trim();
   if (!o || !r || !t) { $('#sMsg').innerHTML = '<div class="msg err">Renseigne les trois champs.</div>'; return; }
   $('#sMsg').innerHTML = '<div class="msg"><span class="spin"></span>Connexion…</div>';
   try {
@@ -820,15 +835,25 @@ $('#shClose').onclick = () => $('#sheet').classList.add('hidden');
 $('#sheet').onclick = (e) => { if (e.target.id === 'sheet') $('#sheet').classList.add('hidden'); };
 $('#shReload').onclick = () => { $('#sheet').classList.add('hidden'); charger(); };
 $('#shLogout').onclick = () => {
-  if (!confirm('Effacer le jeton de ce téléphone ? Il faudra rescanner le QR code.')) return;
+  if (!confirm('Effacer le jeton de ce téléphone ? Il faudra rescanner le QR code. (Si tu utilises l\'icône de l\'écran d\'accueil, supprime-la aussi : elle contient la configuration.)')) return;
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   localStorage.removeItem(KEY); CFG = null; DATA = null; $('#sheet').classList.add('hidden'); $('#sMsg').innerHTML = ''; show('setup');
 };
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && CFG && DATA && !$('#km').value) charger(); });
 
 // ---------- démarrage ----------
 $('#date').value = today();
+const viaLien = readHash();
 loadCfg();
 if (CFG && CFG.o && CFG.r && CFG.t) charger(); else show('setup');
+// iPhone dans Safari juste après le QR code : l'ajouter maintenant, depuis cette adresse
+if (viaLien && !standalone()) {
+  $('#tipTxt').innerHTML = isIOS
+    ? 'Fais-le <b>maintenant, depuis cette page</b> : bouton Partager <b>⬆</b> en bas › <b>Sur l\'écran d\'accueil</b> › Ajouter. L\'icône sera connectée directement.'
+    : 'Menu <b>⋮</b> › <b>Ajouter à l\'écran d\'accueil</b> (ou « Installer l\'application »), depuis cette page.';
+  $('#tip').classList.remove('hidden');
+  $('#tipOk').onclick = () => $('#tip').classList.add('hidden');
+}
 </script>
 </body>
 </html>
