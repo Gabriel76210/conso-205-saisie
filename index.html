@@ -207,7 +207,9 @@ h2 { font-size: 15px; margin: 0 0 8px; }
  * Si tous les pleins sont complets, on retrouve exactement le classeur.
  */
 (function (root) {
-  function compute(pleins, reservoir, kmAn, today) {
+  /* kmAuto = true : les km par an des projections sont ceux réellement parcourus d'après les pleins datés
+   * (km entre le 1er et le dernier plein daté ÷ jours × 365), et le réglage kmAn ne sert que s'il n'y a pas assez de dates. */
+  function compute(pleins, reservoir, kmAn, today, kmAuto) {
     const rows = [...pleins].sort((a, b) => a.km - b.km);
     const out = [];
     let prev = null, anchorKm = null, litresSince = 0;
@@ -257,22 +259,26 @@ h2 { font-size: 15px; margin: 0 0 8px; }
     s.prix_evol = out[0].prix_l ? s.prix_last / out[0].prix_l - 1 : null;
     s.cout_km = kp > 0 ? s.depense_periode / kp : null;
     s.cout_100 = s.cout_km !== null ? s.cout_km * 100 : null;
-    s.km_an = kmAn; s.reservoir = reservoir;
-    s.budget_obs = kmAn && s.cout_km !== null ? kmAn * s.cout_km : null;
-    s.budget_prix = kmAn && s.conso_moy && s.prix_last ? kmAn * s.conso_moy / 100 * s.prix_last : null;
-    s.budget_mois = s.budget_prix !== null ? s.budget_prix / 12 : null;
-    s.autonomie = reservoir && s.conso_moy ? reservoir / s.conso_moy * 100 : null;
-    s.prochain_plein = s.km_moy ? s.km_actuel + s.km_moy : null;
-
     // Indicateurs utilisant les dates (si renseignées)
     const dated = out.filter((r) => r.date);
-    s.km_an_reel = null; s.depense_12m = null;
+    s.km_an_reel = null; s.depense_12m = null; s.km_an_jours = null;
     s.date_last = dated.length ? dated[dated.length - 1].date : null;
     if (dated.length >= 2) {
       const d0 = Date.parse(dated[0].date), d1 = Date.parse(dated[dated.length - 1].date);
       const days = (d1 - d0) / 86400000;
-      if (days >= 30) s.km_an_reel = (dated[dated.length - 1].km - dated[0].km) / days * 365;
+      if (days >= 30) { s.km_an_reel = (dated[dated.length - 1].km - dated[0].km) / days * 365; s.km_an_jours = Math.round(days); }
     }
+
+    // Projections : km par an réels (auto) ou réglés à la main
+    s.km_an_auto = !!kmAuto && s.km_an_reel !== null;
+    const kmA = s.km_an_auto ? s.km_an_reel : kmAn;
+    s.km_an = kmA; s.km_an_regle = kmAn; s.reservoir = reservoir;
+    s.budget_obs = kmA && s.cout_km !== null ? kmA * s.cout_km : null;
+    s.budget_prix = kmA && s.conso_moy && s.prix_last ? kmA * s.conso_moy / 100 * s.prix_last : null;
+    s.budget_mois = s.budget_prix !== null ? s.budget_prix / 12 : null;
+    s.autonomie = reservoir && s.conso_moy ? reservoir / s.conso_moy * 100 : null;
+    s.prochain_plein = s.km_moy ? s.km_actuel + s.km_moy : null;
+    s.peu_de_donnees = out.length < 4;
     if (dated.length) {
       const t = today ? new Date(today) : new Date();
       t.setDate(t.getDate() - 365);
@@ -317,7 +323,7 @@ h2 { font-size: 15px; margin: 0 0 8px; }
     { id: 'pieces', label: 'Pièces et consommables', color: '#2f6fde', duree: 0 },
     { id: 'assurance', label: 'Assurance', color: '#7a5af0', duree: 12 },
     { id: 'ct', label: 'Contrôle technique', color: '#0f9d94', duree: 24 },
-    { id: 'admin', label: 'Carte grise et administratif', color: '#c98a06', duree: 0 },
+    { id: 'admin', label: 'Carte grise et administratif', color: '#c98a06', duree: -1 },
     { id: 'peage', label: 'Péages et stationnement', color: '#e05297', duree: 0 },
     { id: 'autre', label: 'Autre', color: '#8590a2', duree: 0 },
   ];
@@ -334,14 +340,29 @@ h2 { font-size: 15px; margin: 0 0 8px; }
   // Part d'une dépense attribuée à un véhicule (dépense partagée = parts égales)
   const share = (e, nVeh) => (e.vehicule_id === null || e.vehicule_id === undefined ? 1 / Math.max(1, nVeh) : 1);
   const depensesVeh = (depenses, vid) => (depenses || []).filter((e) => e.vehicule_id === vid || e.vehicule_id === null || e.vehicule_id === undefined);
-  // Intervalle couvert par une dépense : [début, fin[ en jours. Ponctuelle : le seul jour de la dépense.
-  function span(e) {
+  /* Intervalle couvert par une dépense : [début, fin[ en jours.
+   *   duree = 0  : ponctuelle, le seul jour de la dépense
+   *   duree > 0  : étalée sur ce nombre de mois
+   *   duree = -1 : étalée sur toute la durée de possession (carte grise…), de la date de la dépense
+   *                jusqu'à la date de vente du véhicule si elle est renseignée, sinon jusqu'à aujourd'hui.
+   *                La part par jour diminue donc à mesure que le véhicule est gardé. */
+  const DUREE_POSSESSION = -1;
+  function ctxOf(today, vehicules) {
+    return { t: today || new Date().toISOString().slice(0, 10), fins: new Map((vehicules || []).filter((v) => v.date_vente).map((v) => [v.id, v.date_vente])) };
+  }
+  function span(e, ctx) {
     const s = dnum(e.date);
+    if (e.duree === DUREE_POSSESSION) {
+      const c = ctx || ctxOf();
+      const fin = (e.vehicule_id != null && c.fins.get(e.vehicule_id)) || c.t;
+      const t = dnum(fin) + 1;
+      return t > s + 1 ? [s, t] : [s, s + 1];
+    }
     return e.duree > 0 ? [s, dnum(addMonths(e.date, e.duree))] : [s, s + 1];
   }
   // Montant d'une dépense tombant dans [a, b[ (au prorata du temps pour une dépense étalée)
-  function partIn(e, a, b, nVeh) {
-    const [s, t] = span(e);
+  function partIn(e, a, b, nVeh, ctx) {
+    const [s, t] = span(e, ctx);
     const ov = Math.min(b, t) - Math.max(a, s);
     return ov > 0 ? e.montant * share(e, nVeh) * ov / (t - s) : 0;
   }
@@ -368,7 +389,8 @@ h2 { font-size: 15px; margin: 0 0 8px; }
    *   Coût au km (poste) = montant du poste dans la fenêtre ÷ (Km de fin − Km de début)
    * Autres dépenses : ponctuelles comptées si leur date est dans la fenêtre, étalées au prorata des jours.
    */
-  function coutRevient(pleins, depenses, vid, nVeh, per, today) {
+  function coutRevient(pleins, depenses, vid, nVeh, per, today, vehicules) {
+    const ctx = ctxOf(today, vehicules);
     const [p0, p1] = periodeBornes(per, today);
     const all = [...pleins].sort((a, b) => a.km - b.km);
     const D = all.filter((p) => p.date);
@@ -407,7 +429,7 @@ h2 { font-size: 15px; margin: 0 0 8px; }
     res.parts.carburant = carb;
     for (const e of depensesVeh(depenses, vid)) {
       if (!e.date || !(e.montant > 0) || !(e.categorie in res.parts)) continue;
-      res.parts[e.categorie] += partIn(e, Ta, Tb, nVeh);
+      res.parts[e.categorie] += partIn(e, Ta, Tb, nVeh, ctx);
     }
     for (const c of CATS) res.parKm[c.id] = res.parts[c.id] / km;
     Object.assign(res, { ok: true, km, d0: diso(Ta), d1: diso(Tb - 1), jours: Tb - Ta, km0: kmA, km1: kmB,
@@ -419,8 +441,9 @@ h2 { font-size: 15px; margin: 0 0 8px; }
   /* Dépense par mois (vue « budget ») : pleins datés comptés au mois du plein, dépenses
    * ponctuelles au mois de la dépense, dépenses étalées réparties au prorata des jours de chaque mois.
    * Les mois vont du 1er mois ayant une donnée jusqu'au mois en cours. */
-  function parMois(pleins, depenses, vid, nVeh, today) {
+  function parMois(pleins, depenses, vid, nVeh, today, vehicules) {
     const t = today || new Date().toISOString().slice(0, 10);
+    const ctx = ctxOf(t, vehicules);
     const deps = depensesVeh(depenses, vid).filter((e) => e.date && e.montant > 0);
     const dates = [...pleins.filter((p) => p.date).map((p) => p.date), ...deps.map((e) => e.date)].filter((d) => d <= t).sort();
     if (!dates.length) return [];
@@ -433,7 +456,7 @@ h2 { font-size: 15px; margin: 0 0 8px; }
       if (!(e.categorie in out[0].parts)) continue;
       for (const o of out) {
         const a = dnum(o.mois + '-01'), b = dnum(addMonths(o.mois + '-01', 1));
-        o.parts[e.categorie] += partIn(e, a, Math.min(b, dnum(t) + 1), nVeh);
+        o.parts[e.categorie] += partIn(e, a, Math.min(b, dnum(t) + 1), nVeh, ctx);
       }
     }
     return out;
@@ -459,7 +482,7 @@ h2 { font-size: 15px; margin: 0 0 8px; }
   SEED.pleins.push({ id: id++, vehicule_id: 2, date: null, km: 55528, prix: 90.45, litres: 43.09, complet: true, station: '', note: '' });
 
   SEED.depenses = [];
-  const api = { compute, SEED, CATS, coutRevient, totalCats, parMois, periodes, periodeBornes, depensesVeh, addMonths,
+  const api = { compute, SEED, CATS, DUREE_POSSESSION, coutRevient, totalCats, parMois, periodes, periodeBornes, depensesVeh, addMonths,
     seuils: { TOL_RESERVOIR, TOL_AUTONOMIE, CONSO_BAS, CONSO_HAUT } };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Calc = api;
@@ -749,7 +772,7 @@ function renderAll() {
   $('#vehs').innerHTML = DATA.vehicules.map((x) => `<button data-v="${x.uid}" class="${x.uid === VUID ? 'on' : ''}">${esc(x.immat)}</button>`).join('');
   $('#vehs').classList.toggle('hidden', DATA.vehicules.length < 2);
   document.querySelectorAll('#vehs button').forEach((b) => (b.onclick = () => { VUID = b.dataset.v; CFG.v = VUID; saveCfg(); resetForm(); renderAll(); }));
-  const { rows, s } = Calc.compute(pleinsV(), v.reservoir, v.km_an);
+  const { rows, s } = Calc.compute(pleinsV(), v.reservoir, v.km_an, undefined, v.km_an_auto !== false);
   const last = rows[rows.length - 1];
   $('#lastCard').innerHTML = last ? `<div class="last">
       <div><span>Dernier plein</span><b>${fnum(last.km, 0)} km</b></div>
@@ -821,9 +844,9 @@ function renderGraphs() {
   Chart.defaults.borderColor = dark() ? '#2c3851' : '#e4e8ef';
   document.querySelectorAll('#gRange button').forEach((b) => b.classList.toggle('on', b.dataset.r === RANGE));
   const v = veh(), pv = pleinsV();
-  const { rows, s } = Calc.compute(pv, v.reservoir, v.km_an);
+  const { rows, s } = Calc.compute(pv, v.reservoir, v.km_an, undefined, v.km_an_auto !== false);
   const nV = DATA.vehicules.length, t = today();
-  const mois = Calc.parMois(pv, DATA.depenses || [], v.id, nV, t);
+  const mois = Calc.parMois(pv, DATA.depenses || [], v.id, nV, t, DATA.vehicules);
   const tot = (o) => Object.values(o.parts).reduce((x, y) => x + y, 0);
   const d12 = mois.slice(-12).reduce((x, o) => x + tot(o), 0);
   $('#kpis').innerHTML = `
