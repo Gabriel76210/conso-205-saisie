@@ -123,6 +123,7 @@ h2 { font-size: 15px; margin: 0 0 8px; }
 .list .rk { display: inline-block; width: 22px; height: 22px; border-radius: 7px; background: var(--surface-2); text-align: center; line-height: 22px; font-size: 12px; margin-right: 8px; color: var(--text-2); }
 .list li.pl:first-child .rk { background: #16a06a; color: #fff; }
 .leaflet-container { font-family: inherit; }
+.tuiles-sombres{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 </style>
 </head>
 <body>
@@ -204,7 +205,7 @@ h2 { font-size: 15px; margin: 0 0 8px; }
         <div class="f" style="margin-bottom:8px"><input id="pAddr" placeholder="Adresse ou ville" style="font-size:16px"></div>
         <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn ghost" id="pAddrGo">Chercher l'adresse</button><button class="btn ghost" id="pHomeHere">Centre de la carte</button></div>
       </div>
-      <div class="foot">Prix : flux officiel « Prix des carburants » (Ministère de l'Économie, data.economie.gouv.fr), mis à jour toutes les 10 min.<br>Carte © OpenStreetMap, © CARTO.</div>
+      <div class="foot">Prix : flux officiel « Prix des carburants » (Ministère de l'Économie, data.economie.gouv.fr), mis à jour toutes les 10 min.<br>Carte © IGN – Géoplateforme (repli © OpenStreetMap).</div>
     </div>
     <div class="foot" id="foot"></div>
   </section>
@@ -1726,8 +1727,19 @@ function ouvrirPrix() {
   if (MAP) { setTimeout(() => MAP.invalidateSize(), 50); return; }
   MAP = L.map('pmap', { zoomControl: false, attributionControl: true }).setView([46.6, 2.4], 6);
   const tiles = params.get('tiles');
-  if (tiles !== 'none') L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark() ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`,
-    { subdomains: 'abcd', maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>' }).addTo(MAP);
+  if (tiles !== 'none') {
+    // Fond : Plan IGN (Géoplateforme, gratuit, sans clé) ; repli OpenStreetMap si l'IGN ne répond pas
+    const ign = L.tileLayer('https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}',
+      { maxZoom: 19, maxNativeZoom: 19, className: dark() ? 'tuiles-sombres' : '', attribution: '© <a href="https://www.ign.fr/">IGN</a> – Géoplateforme' });
+    let erreurs = 0, repli = false;
+    ign.on('tileerror', () => {
+      if (repli || ++erreurs < 4) return;
+      repli = true; MAP.removeLayer(ign);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: dark() ? 'tuiles-sombres' : '',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(MAP);
+    });
+    ign.addTo(MAP);
+  }
   L.control.zoom({ position: 'bottomright' }).addTo(MAP);
   LAYER = L.layerGroup().addTo(MAP);
   MAP.on('moveend', () => { clearTimeout(LOADT); LOADT = setTimeout(charger_zone, 350); try { const c = MAP.getCenter(); localStorage.setItem(PKEY.view, JSON.stringify([c.lat, c.lng, MAP.getZoom()])); } catch { } });
