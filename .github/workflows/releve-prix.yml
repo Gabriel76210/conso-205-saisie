@@ -1,0 +1,97 @@
+# Conso 205 — relevé automatique des prix des stations favorites
+# Tourne sur les serveurs de GitHub toutes les heures, même si le PC et le téléphone sont éteints.
+# Lit les favoris dans donnees.json, interroge le flux officiel « Prix des carburants en France »
+# et ajoute chaque changement de prix dans historique_prix.json (fichier séparé : aucun conflit avec les pleins).
+name: Releve des prix (stations favorites)
+
+on:
+  schedule:
+    - cron: '17 * * * *'      # toutes les heures, à hh:17 (heure UTC)
+  workflow_dispatch:           # bouton « Run workflow » pour lancer un relevé à la main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: releve-prix
+  cancel-in-progress: false
+
+jobs:
+  releve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Relever les prix
+        run: |
+          cat > /tmp/releve.mjs <<'SCRIPT'
+          import fs from 'node:fs';
+          const API = process.env.PRIX_API || 'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records';
+          const CARBU = ['sp98', 'sp95', 'e10'];
+          const lire = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
+
+          // favoris actifs (ceux qui n'ont pas été supprimés depuis leur dernière modification)
+          const data = lire('donnees.json', {});
+          const tomb = new Map((data.supprimes || []).map((t) => [t.uid, t.maj]));
+          const favoris = (data.favoris || []).filter((f) => f.station && !(tomb.has(f.uid) && tomb.get(f.uid) >= (f.maj || 0)));
+          console.log(`${favoris.length} station(s) favorite(s)`);
+
+          const H = lire('historique_prix.json', { app: 'Conso 205', stations: {} });
+          H.stations = H.stations || {};
+          const prix = (x) => { let v = Number(String(x ?? '').replace(',', '.')); if (!isFinite(v) || v <= 0) return null; if (v > 50) v /= 1000; return Math.round(v * 1000) / 1000; };
+          const titre = (s) => String(s || '').toLowerCase().replace(/(^|[\s\-'])([a-zà-ÿ])/g, (m, a, b) => a + b.toUpperCase());
+          let changements = 0;
+
+          for (const f of favoris) {
+            const id = String(f.station);
+            const where = `within_distance(geom, geom'POINT(${Number(f.lon).toFixed(5)} ${Number(f.lat).toFixed(5)})', 0.3km)`;
+            let rec = null;
+            for (let essai = 1; essai <= 3 && !rec; essai++) {
+              try {
+                const r = await fetch(API + '?' + new URLSearchParams({ where, limit: '20' }));
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const j = await r.json();
+                rec = (j.results || []).find((x) => String(x.id ?? x.identifiant) === id) || null;
+                if (!rec) { console.log(`  ${id} : station introuvable dans le flux`); break; }
+              } catch (e) { console.log(`  ${id} : essai ${essai} échoué (${e.message})`); await new Promise((ok) => setTimeout(ok, 3000)); }
+            }
+            if (!rec) continue;
+            const st = H.stations[id] || (H.stations[id] = { prix: {} });
+            st.adresse = titre(rec.adresse) || st.adresse || f.nom || '';
+            st.ville = titre(rec.ville) || st.ville || '';
+            st.cp = String(rec.cp ?? st.cp ?? '');
+            st.prix = st.prix || {};
+            for (const c of CARBU) {
+              const p = prix(rec[c + '_prix']);
+              if (p === null) continue;
+              const d = rec[c + '_maj'] ? new Date(rec[c + '_maj']).toISOString() : new Date().toISOString();
+              const serie = st.prix[c] || (st.prix[c] = []);
+              const der = serie[serie.length - 1];
+              // nouveau point seulement si le prix a changé (d = date du changement déclarée par la station)
+              if (!der || der.p !== p) { serie.push({ d, p }); changements++; console.log(`  ${id} ${c.toUpperCase()} : ${p} € (${d})`); }
+            }
+          }
+          H.releve = new Date().toISOString();
+          if (changements || !fs.existsSync('historique_prix.json')) {
+            H.maj = H.releve;
+            fs.writeFileSync('historique_prix.json', JSON.stringify(H, null, 1));
+            console.log(`${changements} changement(s) enregistré(s)`);
+          } else console.log('Aucun changement de prix');
+          SCRIPT
+          node /tmp/releve.mjs
+
+      - name: Enregistrer l'historique
+        run: |
+          if git diff --quiet -- historique_prix.json 2>/dev/null && git ls-files --error-unmatch historique_prix.json >/dev/null 2>&1; then
+            echo "Rien à enregistrer"; exit 0
+          fi
+          git config user.name "Conso 205 (releve auto)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add historique_prix.json
+          git commit -m "Releve des prix : historique mis a jour"
+          for i in 1 2 3 4 5; do
+            git pull --rebase --quiet && git push --quiet && exit 0
+            sleep 5
+          done
+          exit 1
